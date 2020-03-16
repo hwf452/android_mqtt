@@ -74,12 +74,12 @@ public class MainActivity extends AppCompatActivity {
          */
         // Mqtt的默认文件持久化
         MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
-        String serverURI = "tcp://118.31.68.250:61613";//183.230.40.39:6002
-        String clientId = "device1";//587670943
+        String serverURI = "tcp://**********:61613";
+        String clientId = "******";
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(false);
-        options.setUserName("admin");//324919
-        options.setPassword("password".toCharArray());//vPdKsMQ=axTfZovQlkuTAm4Vl1c=
+        options.setUserName("******");
+        options.setPassword("*******".toCharArray());
         options.setAutomaticReconnect(true);
         mClient = new MqttAndroidClient(getApplicationContext(), serverURI, clientId,dataStore);
 
@@ -111,10 +111,13 @@ public class MainActivity extends AppCompatActivity {
                 String s = message.toString();
                 Log.v("messageArrived",s);
                 switch (topic){
-                    case "temp":
-                        float temp = Integer.parseInt(s.substring(0,2));
-                        pv1.setProgress(temp);
-                        float humi = Integer.parseInt(s.substring(2,4));
+                    case "Temp":
+                        float temp = Integer.parseInt(s);
+                        pv1.setProgress(temp);break;
+
+
+                    case "Humi":
+                        float humi = Integer.parseInt(s);
                         pv2.setProgress(humi);break;
 
                     case "LED_STATUS_control":
