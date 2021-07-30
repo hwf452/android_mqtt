@@ -32,31 +32,28 @@ public class MainActivity extends AppCompatActivity {
         pv2 = (ProcessView1)findViewById(R.id.pv2);
         tv = (TextView)findViewById(R.id.tv);
         ib = (ImageButton)findViewById(R.id.on);
+        ib.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    if(led_flag){
+                        mClient.publish("LED_STATUS","0".getBytes(),2,true);
+                        led_flag = false;
+                    }else{
+                        mClient.publish("LED_STATUS","1".getBytes(),1,false);
+                        led_flag = true;
+                    }
+                } catch (MqttException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         try {
             initClient();
         } catch (MqttException e) {
             e.printStackTrace();
         }
     }
-
-    public  void Click(View view) throws MqttException {
-        switch (view.getId()){
-            case R.id.on://此处是对布局中设置的id直接进行判断，
-                // 不需要对控件进行获取（findviewByID）
-                if(!led_flag){
-                    mClient.publish("LED_STATUS","1".getBytes(),0,false);
-                    led_flag = true;
-                }else if (led_flag){
-                    mClient.publish("LED_STATUS","0".getBytes(),0,false);
-                    led_flag = false;
-                }
-
-                break;
-        }
-    }
-
-
-
 
     private void initClient() throws MqttException {
 
@@ -74,12 +71,12 @@ public class MainActivity extends AppCompatActivity {
          */
         // Mqtt的默认文件持久化
         MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
-        String serverURI = "tcp://**********:61613";
-        String clientId = "******";
+        String serverURI = "tcp://192.168.2.111:61613";
+        String clientId = "2";
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(false);
-        options.setUserName("******");
-        options.setPassword("*******".toCharArray());
+        options.setUserName("admin");
+        options.setPassword("password".toCharArray());
         options.setAutomaticReconnect(true);
         mClient = new MqttAndroidClient(getApplicationContext(), serverURI, clientId,dataStore);
 
@@ -91,8 +88,9 @@ public class MainActivity extends AppCompatActivity {
             public void connectComplete(boolean reconnect, String serverURI) {
                 Log.e("connectComplete","connectComplete");
                 try {
-                    mClient.subscribe("temp",2);
-                    mClient.subscribe("LED_STATUS_control",2);
+                    mClient.subscribe("Temp",2);
+                    mClient.subscribe("Humi",2);
+                    mClient.subscribe("LED_STATUS",2);
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }
@@ -113,19 +111,30 @@ public class MainActivity extends AppCompatActivity {
                 switch (topic){
                     case "Temp":
                         float temp = Integer.parseInt(s);
-                        pv1.setProgress(temp);break;
-
-
+                        pv1.setProgress(temp);
+                        break;
                     case "Humi":
                         float humi = Integer.parseInt(s);
-                        pv2.setProgress(humi);break;
-
-                    case "LED_STATUS_control":
+                        pv2.setProgress(humi);
+                        break;
+                    case "LED_STATUS":
+                        Log.i("LED_STATUS",s);
                         if(s.equals("1")) {
-                            ib.setImageDrawable(ib.getResources().getDrawable(R.drawable.ic_led_on));
+                            runOnUiThread(new java.lang.Runnable() {
+                                @Override
+                                public void run() {
+                                    ib.setImageDrawable(ib.getResources().getDrawable(R.drawable.ic_led_on));
+                                }
+                            });
                         } else {
-                            ib.setImageDrawable(ib.getResources().getDrawable(R.drawable.ic_led_off));
-                        }break;
+                            runOnUiThread(new java.lang.Runnable() {
+                                @Override
+                                public void run() {
+                                    ib.setImageDrawable(ib.getResources().getDrawable(R.drawable.ic_led_off));
+                                }
+                            });
+                        }
+                        break;
                 }
             }
             @Override
